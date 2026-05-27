@@ -24,8 +24,17 @@ jobs:
       - name: 🤖 Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: 🔍 Debug info
+        run: |
+          echo "Java: $(java -version 2>&1)"
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          ls -la $ANDROID_HOME/ 2>/dev/null || echo "No ANDROID_HOME"
+          ls -la $ANDROID_HOME/platforms/ 2>/dev/null || echo "No platforms dir"
+          ls -la $ANDROID_HOME/build-tools/ 2>/dev/null || echo "No build-tools dir"
+          echo "local.properties: $(cat $GITHUB_WORKSPACE/local.properties 2>/dev/null || echo 'not found')"
+
       - name: 🏗️ Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace --info
+        run: ./gradlew assembleDebug --stacktrace --info 2>&1 | tail -100
 
       - name: 📤 Upload APK
         uses: actions/upload-artifact@v4
