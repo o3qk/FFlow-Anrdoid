@@ -24,21 +24,15 @@ jobs:
       - name: 🤖 Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: 🔍 Debug info
-        run: |
-          echo "Java: $(java -version 2>&1)"
-          echo "ANDROID_HOME: $ANDROID_HOME"
-          ls -la $ANDROID_HOME/ 2>/dev/null || echo "No ANDROID_HOME"
-          ls -la $ANDROID_HOME/platforms/ 2>/dev/null || echo "No platforms dir"
-          ls -la $ANDROID_HOME/build-tools/ 2>/dev/null || echo "No build-tools dir"
-          echo "local.properties: $(cat $GITHUB_WORKSPACE/local.properties 2>/dev/null || echo 'not found')"
-
       - name: 🏗️ Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace --info 2>&1 | tail -100
+        run: ./gradlew assembleDebug --stacktrace --info 2>&1 | head -300
+
+      - name: 🔍 Find APK
+        run: find . -name "*.apk" -type f 2>/dev/null || echo "No APK found"
 
       - name: 📤 Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: fflowapp-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+          path: |
+            app/build/outputs/apk/**/*.apk
