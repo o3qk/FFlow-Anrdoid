@@ -1,7 +1,6 @@
 package com.example.fflowapp.data
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -17,8 +16,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TaskDao {
 
-    /** Observe all tasks ordered by timestamp descending (newest first). */
-    @Query("SELECT * FROM tasks ORDER BY timestamp DESC")
+    /** Observe active (non-deleted) tasks ordered by startTime descending. */
+    @Query("SELECT * FROM tasks WHERE isDeleted = 0 ORDER BY startTime DESC")
     fun getAllTasks(): Flow<List<Task>>
 
     /** Insert a single task; replaces on conflict by primary key. */
@@ -29,19 +28,23 @@ interface TaskDao {
     @Update
     suspend fun update(task: Task)
 
-    /** Delete a specific task. */
-    @Delete
-    suspend fun delete(task: Task)
+    /** Soft-delete: set isDeleted flag. */
+    @Query("UPDATE tasks SET isDeleted = 1, updatedAt = :now WHERE id = :id")
+    suspend fun softDelete(id: Long, now: Long = System.currentTimeMillis())
 
-    /** Retrieve a single task by its id (for detail screens). */
+    /** Retrieve a single task by its id. */
     @Query("SELECT * FROM tasks WHERE id = :id")
     suspend fun getTaskById(id: Long): Task?
 
-    /** Observe all tasks sorted: pinned first, then by timestamp descending. */
-    @Query("SELECT * FROM tasks ORDER BY pinned DESC, timestamp DESC")
+    /** Observe active tasks sorted: pinned first, then by startTime descending. */
+    @Query("SELECT * FROM tasks WHERE isDeleted = 0 ORDER BY isPinned DESC, startTime DESC")
     fun getTasksSorted(): Flow<List<Task>>
 
     /** Toggle the pinned flag on a task. */
-    @Query("UPDATE tasks SET pinned = :pinned WHERE id = :id")
+    @Query("UPDATE tasks SET isPinned = :pinned WHERE id = :id")
     suspend fun setPinned(id: Long, pinned: Boolean)
+
+    /** Set the done flag on a task. */
+    @Query("UPDATE tasks SET isDone = :done, updatedAt = :now WHERE id = :id")
+    suspend fun setDone(id: Long, done: Boolean, now: Long = System.currentTimeMillis())
 }

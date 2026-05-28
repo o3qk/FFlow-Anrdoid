@@ -3,7 +3,7 @@ package com.example.fflowapp.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fflowapp.data.Task
-import com.example.fflowapp.data.TaskDao
+import com.example.fflowapp.data.TaskRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,14 +19,14 @@ import java.time.LocalTime
  *
  * Manages:
  * - Current date/time for the timeline display
- * - Task list loaded from Room DAO
+ * - Task list loaded from Room via [TaskRepository]
  * - Vertical scroll offset (hour-based navigation)
  * - Horizontal scroll offset (date navigation, ±35% width constraint)
  * - Bottom sheet ("あとでやる") visibility
- * - Pin/unpin task toggling
+ * - Pin/unpin, done toggle, insert
  */
 class FFlowViewModel(
-    private val taskDao: TaskDao
+    private val repository: TaskRepository
 ) : ViewModel() {
 
     /** Currently selected date */
@@ -37,16 +37,16 @@ class FFlowViewModel(
     private val _currentTime = MutableStateFlow(LocalTime.now())
     val currentTime: StateFlow<LocalTime> = _currentTime.asStateFlow()
 
-    /** Task list observed from Room DAO — reactive updates on insert/update/delete */
-    val tasks: StateFlow<List<Task>> = taskDao.getAllTasks()
+    /** Active tasks observed from Room — reactive updates on insert/update/delete */
+    val tasks: StateFlow<List<Task>> = repository.activeTasks
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList()
         )
 
-    /** Task list sorted with pinned tasks first — used by the bottom sheet */
-    val sortedTasks: StateFlow<List<Task>> = taskDao.getTasksSorted()
+    /** Tasks sorted with pinned items first — used by the bottom sheet */
+    val sortedTasks: StateFlow<List<Task>> = repository.sortedTasks
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -111,10 +111,26 @@ class FFlowViewModel(
         _showBottomSheet.value = !_showBottomSheet.value
     }
 
-    /** Pin/unpin a task and persist via DAO. */
+    /** Pin/unpin a task and persist via Repository. */
     fun togglePin(task: Task) {
         viewModelScope.launch {
-            taskDao.setPinned(task.id, !task.pinned)
+            repository.setPinned(task.id, !task.isPinned)
+        }
+    }
+
+    /** Toggle done/un-done a task. */
+    fun toggleDone(task: Task) {
+        viewModelScope.launch {
+            repository.toggleDone(task.id, !task.isDone)
+        }
+    }
+
+    /** Insert a new task. */
+    fun addTask(title: String, memo: String? = null, startTime: Long = System.currentTimeMillis()) {
+        viewModelScope.launch {
+            repository.insert(
+                Task(title = title, memo = memo, startTime = startTime)
+            )
         }
     }
 }
