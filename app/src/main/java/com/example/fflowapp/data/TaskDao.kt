@@ -40,6 +40,14 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE isDeleted = 0 ORDER BY isPinned DESC, startTime DESC")
     fun getTasksSorted(): Flow<List<Task>>
 
+    /** Observe active tasks that are not done, ordered by startTime descending. */
+    @Query("SELECT * FROM tasks WHERE isDeleted = 0 AND isDone = 0 ORDER BY startTime DESC")
+    fun getActiveTasks(): Flow<List<Task>>
+
+    /** Observe completed tasks that are not deleted, ordered by startTime descending. */
+    @Query("SELECT * FROM tasks WHERE isDeleted = 0 AND isDone = 1 ORDER BY startTime DESC")
+    fun getCompletedTasks(): Flow<List<Task>>
+
     /** Toggle the pinned flag on a task. */
     @Query("UPDATE tasks SET isPinned = :pinned WHERE id = :id")
     suspend fun setPinned(id: Long, pinned: Boolean)
