@@ -8,6 +8,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.fflowapp.data.AppDatabase
+import com.example.fflowapp.data.TaskRepository
 import com.example.fflowapp.ui.FFlowScreen
 import com.example.fflowapp.ui.FFlowViewModel
 import com.example.fflowapp.ui.theme.FFlowTheme
@@ -30,7 +31,8 @@ class MainActivity : ComponentActivity() {
 
         // Initialise Room database and ViewModel
         val database = AppDatabase.getInstance(this)
-        val viewModel = FFlowViewModel(database.taskDao())
+        val repository = TaskRepository(database.taskDao())
+        val viewModel = FFlowViewModel(repository)
 
         // Enqueue the periodic sync worker if not already scheduled
         schedulePeriodicSync()

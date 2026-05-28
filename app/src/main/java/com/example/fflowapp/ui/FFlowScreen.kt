@@ -322,7 +322,7 @@ private fun FFlowTimeline(
 
                 for (hour in 0..23) {
                     val tasksForHour = tasks.filter { task ->
-                        val taskHourOfDay = (task.timestamp % 86_400_000L) / 3_600_000L
+                        val taskHourOfDay = (task.startTime % 86_400_000L) / 3_600_000L
                         taskHourOfDay.toInt() == hour
                     }
 
@@ -440,8 +440,8 @@ private fun FFlowBottomSheetContent(
                     IconButton(onClick = { onTogglePin(task) }) {
                         Icon(
                             imageVector = Icons.Default.PushPin,
-                            contentDescription = if (task.pinned) "Unpin" else "Pin",
-                            tint = if (task.pinned) {
+                            contentDescription = if (task.isPinned) "Unpin" else "Pin",
+                            tint = if (task.isPinned) {
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)

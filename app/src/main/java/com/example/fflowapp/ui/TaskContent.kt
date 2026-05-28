@@ -26,7 +26,7 @@ import com.example.fflowapp.data.Task
  */
 @Composable
 fun TaskContent(task: Task) {
-    val contentAlpha = if (task.completed) 0.5f else 1f
+    val contentAlpha = if (task.isDone) 0.5f else 1f
     val titleColor = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha)
     val metaColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
 
@@ -45,7 +45,7 @@ fun TaskContent(task: Task) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = titleColor,
-                textDecoration = if (task.completed) {
+                textDecoration = if (task.isDone) {
                     TextDecoration.LineThrough
                 } else {
                     TextDecoration.None
